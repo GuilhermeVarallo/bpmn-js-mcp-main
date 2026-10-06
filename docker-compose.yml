@@ -1,0 +1,119 @@
+# bpmn-js-mcp publicado na web: app (MCP Streamable HTTP) atrás de nginx.
+#
+#   cp .env.docker.example .env.docker      # e preencher MCP_AUTH_TOKENS
+#   docker compose --env-file .env.docker up -d --build
+#   curl -i http://localhost:8080/health
+#
+# Só o nginx publica porta no host; o app fica na rede interna do compose.
+# Sem banco e sem volume: os diagramas vivem na memória da sessão MCP (o agente
+# exporta o XML ao final). Ver README.md.
+#
+# Perfil vercel-dev: reproduz localmente o modo da Vercel (sem sessão, diagramas
+# no Redis) com um Redis e o emulador da API REST do Upstash:
+#   docker compose --env-file .env.docker --profile vercel-dev up -d --build
+#   curl -i http://127.0.0.1:8081/health
+
+name: bpmn-js-mcp
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bpmn-js-mcp:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      # Obrigatório: sem token o app recusa subir (fail-fast, não crash-loop silencioso).
+      MCP_AUTH_TOKENS: ${MCP_AUTH_TOKENS:?defina MCP_AUTH_TOKENS no .env.docker (openssl rand -hex 32)}
+      MCP_ALLOWED_ORIGINS: ${MCP_ALLOWED_ORIGINS:-}
+      MCP_MAX_SESSIONS: ${MCP_MAX_SESSIONS:-50}
+      MCP_SESSION_IDLE_MINUTES: ${MCP_SESSION_IDLE_MINUTES:-30}
+      MCP_MAX_BODY_BYTES: ${MCP_MAX_BODY_BYTES:-4194304}
+      MCP_MAX_CONCURRENT_REQUESTS: ${MCP_MAX_CONCURRENT_REQUESTS:-8}
+      BPMN_MCP_MAX_DIAGRAMS: ${BPMN_MCP_MAX_DIAGRAMS:-20}
+      BPMN_MCP_TOOLS: ${BPMN_MCP_TOOLS:-full}
+    expose:
+      - '3000'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  nginx:
+    build:
+      context: deploy/nginx
+    image: bpmn-js-mcp-nginx:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - '${HTTP_PORT:-8080}:8080'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Perfil vercel-dev: o modo da Vercel rodando localmente ─────────────────
+  redis:
+    image: redis:7.4-alpine
+    profiles: ['vercel-dev']
+    restart: unless-stopped
+
+  # Emula a API REST do Upstash (a mesma que a Vercel usa) sobre o Redis acima.
+  redis-rest:
+    image: hiett/serverless-redis-http:0.0.10
+    profiles: ['vercel-dev']
+    depends_on:
+      - redis
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: ${SRH_TOKEN:-somente-para-desenvolvimento-local}
+      SRH_CONNECTION_STRING: redis://redis:6379
+
+  app-stateless:
+    image: bpmn-js-mcp:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ['vercel-dev']
+    command: ['node', 'dist/index.js', '--http', '--stateless']
+    depends_on:
+      - redis-rest
+    environment:
+      MCP_AUTH_TOKENS: ${MCP_AUTH_TOKENS:?defina MCP_AUTH_TOKENS no .env.docker (openssl rand -hex 32)}
+      KV_REST_API_URL: http://redis-rest:80
+      KV_REST_API_TOKEN: ${SRH_TOKEN:-somente-para-desenvolvimento-local}
+      BPMN_MCP_MAX_DIAGRAMS: ${BPMN_MCP_MAX_DIAGRAMS:-20}
+    ports:
+      - '127.0.0.1:${STATELESS_PORT:-8081}:3000'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

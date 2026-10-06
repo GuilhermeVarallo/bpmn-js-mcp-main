@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+output/
+memory/
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/*
+!.vscode/mcp.json
+.idea/
+.devcontainer.json
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Eval harness output (generated)
+test-outputs/eval/
+
+# Ignore committed BPMN snapshots under test-outputs
+# Keep `test-outputs/eval/` behaviour intact while preventing accidental
+# commits of .bpmn snapshot files created during development.
+test-outputs/*.bpmn
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# Agents
+TODO*
+
+# Example diagrams (generated output, not source)
+example.bpmn
+example-preview.svg
+
+# Segredos do docker compose (ver .env.docker.example)
+.env.docker
+
+# Vercel: link local do projeto e variáveis para rodar o modo Vercel localmente
+.vercel
+.env.vercel

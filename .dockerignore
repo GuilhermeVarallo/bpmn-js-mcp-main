@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+test
+test-outputs
+docs
+agents
+.git
+.github
+.vscode
+.devenv*
+.direnv
+.env
+.env.*
+!.env.docker.example
+*.log

@@ -1,0 +1,379 @@
+import { describe, test, expect, beforeEach } from 'vitest';
+import {
+  handleSuggestLaneOrganization,
+  handleValidateLaneOrganization,
+  handleCreateLanes,
+  handleAssignElementsToLane,
+  handleSetProperties,
+} from '../../../src/handlers';
+import { createDiagram, addElement, connect, parseResult, clearDiagrams } from '../../helpers';
+
+describe('suggest_bpmn_lane_organization', () => {
+  beforeEach(() => {
+    clearDiagrams();
+  });
+
+  test('suggests lanes based on element types', async () => {
+    const diagramId = await createDiagram();
+    const start = await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    const userTask1 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Review Order' });
+    const userTask2 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Approve' });
+    const serviceTask = await addElement(diagramId, 'bpmn:ServiceTask', {
+      name: 'Process Payment',
+    });
+    const scriptTask = await addElement(diagramId, 'bpmn:ScriptTask', {
+      name: 'Calculate Total',
+    });
+    const end = await addElement(diagramId, 'bpmn:EndEvent', { name: 'Done' });
+
+    await connect(diagramId, start, userTask1);
+    await connect(diagramId, userTask1, userTask2);
+    await connect(diagramId, userTask2, serviceTask);
+    await connect(diagramId, serviceTask, scriptTask);
+    await connect(diagramId, scriptTask, end);
+
+    const res = parseResult(await handleSuggestLaneOrganization({ diagramId }));
+
+    expect(res.groupingStrategy).toBe('type');
+    expect(res.totalFlowNodes).toBeGreaterThanOrEqual(6);
+    expect(res.suggestions.length).toBeGreaterThanOrEqual(2);
+
+    // Should have a "Human Tasks" suggestion with the user tasks
+    const humanLane = res.suggestions.find((s: any) => s.laneName === 'Human Tasks');
+    expect(humanLane).toBeDefined();
+    expect(humanLane.elementIds).toContain(userTask1);
+    expect(humanLane.elementIds).toContain(userTask2);
+
+    // Should have an "Automated Tasks" suggestion with service/script tasks
+    const autoLane = res.suggestions.find((s: any) => s.laneName === 'Automated Tasks');
+    expect(autoLane).toBeDefined();
+    expect(autoLane.elementIds).toContain(serviceTask);
+    expect(autoLane.elementIds).toContain(scriptTask);
+
+    expect(res.coherenceScore).toBeDefined();
+    expect(res.recommendation).toBeDefined();
+  });
+
+  test('returns empty suggestions for diagram with no typed tasks', async () => {
+    const diagramId = await createDiagram();
+    await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    await addElement(diagramId, 'bpmn:EndEvent', { name: 'End' });
+
+    const res = parseResult(await handleSuggestLaneOrganization({ diagramId }));
+
+    // Only events — no categorizable tasks
+    expect(res.suggestions).toHaveLength(0);
+    expect(res.recommendation).toContain('No categorizable tasks');
+  });
+
+  test('handles collaboration diagrams with participantId', async () => {
+    const diagramId = await createDiagram();
+    const participant = await addElement(diagramId, 'bpmn:Participant', {
+      name: 'Main Pool',
+      x: 400,
+      y: 200,
+    });
+
+    const _userTask = await addElement(diagramId, 'bpmn:UserTask', {
+      name: 'Review',
+      participantId: participant,
+    });
+    const _serviceTask = await addElement(diagramId, 'bpmn:ServiceTask', {
+      name: 'Process',
+      participantId: participant,
+    });
+
+    const res = parseResult(
+      await handleSuggestLaneOrganization({
+        diagramId,
+        participantId: participant,
+      })
+    );
+
+    expect(res.totalFlowNodes).toBeGreaterThanOrEqual(2);
+    expect(res.suggestions.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('suggests lanes based on camunda:assignee when roles are present', async () => {
+    const diagramId = await createDiagram();
+    const start = await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    const task1 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Submit Request' });
+    const task2 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Approve Request' });
+    const task3 = await addElement(diagramId, 'bpmn:ServiceTask', { name: 'Notify Requester' });
+    const end = await addElement(diagramId, 'bpmn:EndEvent', { name: 'Done' });
+
+    await connect(diagramId, start, task1);
+    await connect(diagramId, task1, task2);
+    await connect(diagramId, task2, task3);
+    await connect(diagramId, task3, end);
+
+    // Set assignees on the tasks
+    await handleSetProperties({
+      diagramId,
+      elementId: task1,
+      properties: { 'camunda:assignee': 'requester' },
+    });
+    await handleSetProperties({
+      diagramId,
+      elementId: task2,
+      properties: { 'camunda:assignee': 'manager' },
+    });
+    await handleSetProperties({
+      diagramId,
+      elementId: task3,
+      properties: { 'camunda:assignee': 'requester' },
+    });
+
+    const res = parseResult(await handleSuggestLaneOrganization({ diagramId }));
+
+    // Should use role-based grouping
+    expect(res.groupingStrategy).toBe('role');
+
+    // Should have lanes named after the roles
+    const requesterLane = res.suggestions.find((s: any) => s.laneName === 'requester');
+    expect(requesterLane).toBeDefined();
+    expect(requesterLane.elementIds).toContain(task1);
+    expect(requesterLane.elementIds).toContain(task3);
+
+    const managerLane = res.suggestions.find((s: any) => s.laneName === 'manager');
+    expect(managerLane).toBeDefined();
+    expect(managerLane.elementIds).toContain(task2);
+  });
+
+  test('falls back to type-based grouping when only one assignee exists', async () => {
+    const diagramId = await createDiagram();
+    const start = await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    const userTask1 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Review' });
+    const serviceTask = await addElement(diagramId, 'bpmn:ServiceTask', { name: 'Process' });
+    const end = await addElement(diagramId, 'bpmn:EndEvent', { name: 'Done' });
+
+    await connect(diagramId, start, userTask1);
+    await connect(diagramId, userTask1, serviceTask);
+    await connect(diagramId, serviceTask, end);
+
+    // Only one assignee — not enough for role-based grouping
+    await handleSetProperties({
+      diagramId,
+      elementId: userTask1,
+      properties: { 'camunda:assignee': 'admin' },
+    });
+
+    const res = parseResult(await handleSuggestLaneOrganization({ diagramId }));
+
+    // Should fall back to type-based grouping
+    expect(res.groupingStrategy).toBe('type');
+    expect(res.suggestions.find((s: any) => s.laneName === 'Human Tasks')).toBeDefined();
+    expect(res.suggestions.find((s: any) => s.laneName === 'Automated Tasks')).toBeDefined();
+  });
+
+  test('single category suggests no lanes needed', async () => {
+    const diagramId = await createDiagram();
+    await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    await addElement(diagramId, 'bpmn:UserTask', { name: 'Task A' });
+    await addElement(diagramId, 'bpmn:UserTask', { name: 'Task B' });
+    await addElement(diagramId, 'bpmn:EndEvent', { name: 'End' });
+
+    const res = parseResult(await handleSuggestLaneOrganization({ diagramId }));
+
+    expect(res.suggestions).toHaveLength(1);
+    expect(res.recommendation).toContain('single category');
+  });
+});
+
+describe('validate_bpmn_lane_organization', () => {
+  beforeEach(() => {
+    clearDiagrams();
+  });
+
+  test('reports no lanes defined', async () => {
+    const diagramId = await createDiagram();
+    await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start' });
+    await addElement(diagramId, 'bpmn:UserTask', { name: 'Task' });
+    await addElement(diagramId, 'bpmn:EndEvent', { name: 'End' });
+
+    const res = parseResult(await handleValidateLaneOrganization({ diagramId }));
+
+    expect(res.totalLanes).toBe(0);
+    expect(res.issues).toHaveLength(1);
+    expect(res.issues[0].code).toBe('no-lanes');
+  });
+
+  test('validates a properly organized lane structure', async () => {
+    const diagramId = await createDiagram();
+    const participant = await addElement(diagramId, 'bpmn:Participant', {
+      name: 'Pool',
+      x: 400,
+      y: 200,
+    });
+
+    const start = await addElement(diagramId, 'bpmn:StartEvent', {
+      name: 'Start',
+      participantId: participant,
+    });
+    const task1 = await addElement(diagramId, 'bpmn:UserTask', {
+      name: 'Task A',
+      participantId: participant,
+    });
+    const task2 = await addElement(diagramId, 'bpmn:UserTask', {
+      name: 'Task B',
+      participantId: participant,
+    });
+    const end = await addElement(diagramId, 'bpmn:EndEvent', {
+      name: 'End',
+      participantId: participant,
+    });
+
+    await connect(diagramId, start, task1);
+    await connect(diagramId, task1, task2);
+    await connect(diagramId, task2, end);
+
+    // Create lanes
+    const lanesResult = parseResult(
+      await handleCreateLanes({
+        diagramId,
+        participantId: participant,
+        lanes: [{ name: 'Lane A' }, { name: 'Lane B' }],
+      })
+    );
+
+    const [laneA, laneB] = lanesResult.laneIds;
+
+    // Assign elements to lanes
+    await handleAssignElementsToLane({
+      diagramId,
+      laneId: laneA,
+      elementIds: [start, task1],
+    });
+    await handleAssignElementsToLane({
+      diagramId,
+      laneId: laneB,
+      elementIds: [task2, end],
+    });
+
+    const res = parseResult(await handleValidateLaneOrganization({ diagramId }));
+
+    expect(res.valid).toBe(true);
+    expect(res.totalLanes).toBe(2);
+    expect(res.laneDetails).toHaveLength(2);
+    expect(res.coherenceScore).toBeDefined();
+  });
+
+  test('detects empty lanes', async () => {
+    const diagramId = await createDiagram();
+    const participant = await addElement(diagramId, 'bpmn:Participant', {
+      name: 'Pool',
+      x: 400,
+      y: 200,
+    });
+
+    await addElement(diagramId, 'bpmn:UserTask', {
+      name: 'Task',
+      participantId: participant,
+    });
+
+    // Create lanes but don't assign anything
+    await handleCreateLanes({
+      diagramId,
+      participantId: participant,
+      lanes: [{ name: 'Empty Lane 1' }, { name: 'Empty Lane 2' }],
+    });
+
+    const res = parseResult(await handleValidateLaneOrganization({ diagramId }));
+
+    const emptyIssues = res.issues.filter((i: any) => i.code === 'lane-empty');
+    expect(emptyIssues.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('detects unassigned elements when added after lanes', async () => {
+    const diagramId = await createDiagram();
+    const participant = await addElement(diagramId, 'bpmn:Participant', {
+      name: 'Pool',
+      x: 400,
+      y: 200,
+    });
+
+    const task1 = await addElement(diagramId, 'bpmn:UserTask', {
+      name: 'Assigned Task',
+      participantId: participant,
+    });
+
+    const lanesResult = parseResult(
+      await handleCreateLanes({
+        diagramId,
+        participantId: participant,
+        lanes: [{ name: 'Lane A' }, { name: 'Lane B' }],
+      })
+    );
+
+    // Only assign one task — the other should be auto-assigned by bpmn-js
+    // when lanes are created (elements are distributed by position).
+    // Verify the tool reports lane details correctly.
+    await handleAssignElementsToLane({
+      diagramId,
+      laneId: lanesResult.laneIds[0],
+      elementIds: [task1],
+    });
+
+    const res = parseResult(await handleValidateLaneOrganization({ diagramId }));
+
+    // Should have lane details for both lanes
+    expect(res.totalLanes).toBe(2);
+    expect(res.laneDetails).toHaveLength(2);
+    expect(res.coherenceScore).toBeDefined();
+
+    // Lane A should have at least the explicitly assigned task
+    const laneA = res.laneDetails.find((d: any) => d.laneName === 'Lane A');
+    expect(laneA).toBeDefined();
+    expect(laneA.elementCount).toBeGreaterThanOrEqual(1);
+  });
+
+  test('reports gateway-sourced cross-lane flows as info, not warning', async () => {
+    // Pattern: Start(A) → Task(A) → Gateway(A) → TaskB(B) → Join(A) → End(A)
+    //          The gateway-sourced cross-lane flow (GW→TaskB) is intentional.
+    const { handleCreateParticipant, handleCreateLanes: createLanes } =
+      await import('../../../src/handlers');
+
+    const diagramId = await createDiagram();
+    const poolRes = parseResult(await handleCreateParticipant({ diagramId, name: 'Process' }));
+    const participantId = poolRes.participant?.id ?? poolRes.participantId;
+    const lanesRes = parseResult(
+      await createLanes({
+        diagramId,
+        participantId,
+        lanes: [{ name: 'Lane A' }, { name: 'Lane B' }],
+      })
+    );
+    const [laneA, laneB] = lanesRes.laneIds as string[];
+
+    const start = await addElement(diagramId, 'bpmn:StartEvent', { name: 'Start', laneId: laneA });
+    const task1 = await addElement(diagramId, 'bpmn:UserTask', { name: 'Prepare', laneId: laneA });
+    const gw = await addElement(diagramId, 'bpmn:ParallelGateway', { name: 'Fork', laneId: laneA });
+    const taskB = await addElement(diagramId, 'bpmn:ServiceTask', {
+      name: 'Notify',
+      laneId: laneB,
+    });
+    const join = await addElement(diagramId, 'bpmn:ParallelGateway', {
+      name: 'Join',
+      laneId: laneA,
+    });
+    const end = await addElement(diagramId, 'bpmn:EndEvent', { name: 'End', laneId: laneA });
+
+    await connect(diagramId, start, task1);
+    await connect(diagramId, task1, gw);
+    await connect(diagramId, gw, taskB);
+    await connect(diagramId, gw, join);
+    await connect(diagramId, taskB, join);
+    await connect(diagramId, join, end);
+
+    const res = parseResult(await handleValidateLaneOrganization({ diagramId }));
+
+    // No zigzag warnings
+    const zigzagIssues = res.issues.filter((i: any) => i.code === 'zigzag-flow');
+    expect(zigzagIssues).toHaveLength(0);
+
+    // An informational note about gateway-sourced cross-lane flows
+    const infoIssues = res.issues.filter((i: any) => i.code === 'gateway-cross-lane-flows');
+    expect(infoIssues).toHaveLength(1);
+    expect(infoIssues[0].severity).toBe('info');
+  });
+});

@@ -1,0 +1,250 @@
+/**
+ * Minimal type interfaces for bpmn-js services and elements.
+ *
+ * bpmn-js doesn't ship proper TypeScript declarations for its internal
+ * services.  These interfaces capture the subset of the API we actually
+ * use so that handler code can avoid raw `any` and get basic IDE
+ * auto-complete / type-checking.
+ */
+
+// ── BPMN Element types ─────────────────────────────────────────────────────
+
+/** Minimal representation of a BPMN business object (semantic model). */
+export interface BusinessObject {
+  $type: string;
+  $parent?: BusinessObject;
+  $attrs?: Record<string, unknown>;
+  id: string;
+  name?: string;
+  default?: BusinessObject;
+  eventDefinitions?: EventDefinition[];
+  extensionElements?: ExtensionElements;
+  loopCharacteristics?: unknown;
+  conditionExpression?: unknown;
+  incoming?: BusinessObject[];
+  outgoing?: BusinessObject[];
+  /** Process reference (Participant → bpmn:Process). */
+  processRef?: BusinessObject;
+  /** Lane → flow node references. */
+  flowNodeRef?: BusinessObject[];
+  /** Flow elements inside a process / subprocess. */
+  flowElements?: BusinessObject[];
+  /** Participants in a collaboration. */
+  participants?: BusinessObject[];
+  /* Camunda-specific attributes (set via moddle descriptor) */
+  assignee?: string;
+  topic?: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+/** Minimal event definition on a business object. */
+export interface EventDefinition {
+  $type: string;
+  $parent?: BusinessObject;
+  errorRef?: BusinessObject;
+  [key: string]: unknown;
+}
+
+/**
+ * Minimal representation of a bpmn:Definitions root element.
+ *
+ * This is the moddle root element that bpmnlint expects as input.
+ * It extends BusinessObject with the Definitions-specific `$type`.
+ */
+export interface BpmnDefinitions extends BusinessObject {
+  $type: 'bpmn:Definitions';
+  rootElements?: BusinessObject[];
+  diagrams?: Array<{ plane?: { planeElement?: any[] } }>;
+}
+
+/** extensionElements container. */
+export interface ExtensionElements {
+  $type: string;
+  $parent?: BusinessObject;
+  values: ExtensionElement[];
+}
+
+/** A single extension element (camunda:InputOutput, camunda:FormData, etc.). */
+export interface ExtensionElement {
+  $type: string;
+  $parent?: ExtensionElements;
+  [key: string]: unknown;
+}
+
+// ── Diagram-JS shape / element ─────────────────────────────────────────────
+
+/** A shape or connection on the canvas — wraps a BusinessObject. */
+export interface BpmnElement {
+  id: string;
+  type: string;
+  businessObject: BusinessObject;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  incoming?: BpmnElement[];
+  outgoing?: BpmnElement[];
+  source?: BpmnElement;
+  target?: BpmnElement;
+  parent?: BpmnElement;
+  /** For boundary events: the host element this event is attached to. */
+  host?: BpmnElement;
+  /** Child elements (shapes inside a container like subprocess/participant). */
+  children?: BpmnElement[];
+  /** Waypoints for connections. */
+  waypoints?: Array<{ x: number; y: number }>;
+  /** Label shape for connections and events. */
+  label?: { x: number; y: number; width: number; height: number };
+  /** Whether this is a collapsed sub-process. */
+  collapsed?: boolean;
+  /** Whether the element is hidden. */
+  hidden?: boolean;
+  /** Whether the element is expanded (for subprocesses). */
+  isExpanded?: boolean;
+  /** BPMN DI (diagram interchange) information. */
+  di?: {
+    $parent?: unknown;
+    bounds?: { x: number; y: number; width: number; height: number };
+    label?: { bounds?: { x: number; y: number; width: number; height: number } };
+    isExpanded?: boolean;
+    [key: string]: unknown;
+  };
+}
+
+// ── bpmn-js service interfaces ─────────────────────────────────────────────
+
+/** The Modeling service — mutates the model & diagram. */
+export interface Modeling {
+  createShape(
+    shape: BpmnElement | Record<string, unknown>,
+    position: { x: number; y: number },
+    target: BpmnElement | Record<string, unknown>,
+    hints?: Record<string, unknown>
+  ): BpmnElement;
+  moveElements(
+    elements: BpmnElement[],
+    delta: { x: number; y: number },
+    newParent?: BpmnElement | Record<string, unknown>,
+    hints?: Record<string, unknown>
+  ): void;
+  layoutConnection(connection: BpmnElement, hints?: Record<string, unknown>): void;
+  updateWaypoints(
+    connection: BpmnElement,
+    newWaypoints: Array<{ x: number; y: number }>,
+    hints?: Record<string, unknown>
+  ): void;
+  connect(source: BpmnElement, target: BpmnElement, attrs?: Record<string, unknown>): BpmnElement;
+  updateProperties(element: BpmnElement, properties: Record<string, unknown>): void;
+  updateModdleProperties(
+    element: BpmnElement,
+    moddleElement: Record<string, unknown>,
+    properties: Record<string, unknown>
+  ): void;
+  removeElements(elements: BpmnElement[]): void;
+  resizeShape(
+    shape: BpmnElement,
+    newBounds: { x: number; y: number; width: number; height: number }
+  ): void;
+  moveShape(
+    shape: BpmnElement,
+    delta: { x: number; y: number },
+    newParent?: BpmnElement | Record<string, unknown>,
+    hints?: Record<string, unknown>
+  ): void;
+}
+
+/** The EventBus service — publish/subscribe event bus for diagram-js events. */
+export interface EventBus {
+  fire(event: string, data?: Record<string, unknown>): unknown;
+  on(event: string, callback: (...args: any[]) => void): void;
+  off(event: string, callback: (...args: any[]) => void): void;
+}
+
+/** The ElementFactory service — creates new shapes / connections. */
+export interface ElementFactory {
+  createShape(attrs: Record<string, unknown>): BpmnElement;
+  createConnection(attrs: Record<string, unknown>): BpmnElement;
+}
+
+/** The ElementRegistry service — find / filter elements. */
+export interface ElementRegistry {
+  get(id: string): BpmnElement | undefined;
+  filter(fn: (element: BpmnElement) => boolean): BpmnElement[];
+  getAll(): BpmnElement[];
+  forEach(fn: (element: BpmnElement) => void): void;
+}
+
+/** The Canvas service — root element access and viewport control. */
+export interface Canvas {
+  getRootElement(): BpmnElement;
+  setRootElement?(element: BpmnElement): void;
+  addMarker?(id: string, marker: string): void;
+  removeMarker?(id: string, marker: string): void;
+}
+
+/** The Moddle service — create BPMN model instances. */
+export interface Moddle {
+  create(type: string, attrs?: Record<string, unknown>): BusinessObject;
+}
+
+/** The BpmnFactory service — create BPMN business objects with auto-IDs. */
+export interface BpmnFactory {
+  create(type: string, attrs?: Record<string, unknown>): BusinessObject;
+}
+
+/** The CommandStack service — undo/redo support. */
+export interface CommandStack {
+  canUndo(): boolean;
+  canRedo(): boolean;
+  undo(): void;
+  redo(): void;
+  execute(command: string, context: Record<string, unknown>): void;
+  /** @internal Current position in the command stack (bpmn-js internal). */
+  _stackIdx?: number;
+}
+
+/** The BpmnReplace service — replace element types. */
+export interface BpmnReplace {
+  replaceElement(element: BpmnElement, target: Record<string, unknown>): BpmnElement;
+}
+
+/** The AutoPlace service — positions elements using Camunda Modeler-style placement. */
+export interface AutoPlace {
+  append(source: BpmnElement, shape: BpmnElement, hints?: Record<string, unknown>): BpmnElement;
+}
+
+// ── Typed service access ───────────────────────────────────────────────────
+
+/**
+ * Map of known bpmn-js service names to their typed interfaces.
+ *
+ * Used by `getService()` to provide type-safe access to modeler services
+ * instead of raw `any` from `modeler.get()`.
+ */
+export interface ServiceMap {
+  modeling: Modeling;
+  elementFactory: ElementFactory;
+  elementRegistry: ElementRegistry;
+  canvas: Canvas;
+  moddle: Moddle;
+  bpmnFactory: BpmnFactory;
+  commandStack: CommandStack;
+  bpmnReplace: BpmnReplace;
+  autoPlace: AutoPlace;
+  eventBus: EventBus;
+}
+
+/**
+ * Type-safe accessor for bpmn-js modeler services.
+ *
+ * Usage:
+ *   const modeling = getService(modeler, 'modeling');
+ *   // modeling is typed as Modeling, not any
+ */
+export function getService<K extends keyof ServiceMap>(
+  modeler: { get(name: string): unknown },
+  name: K
+): ServiceMap[K] {
+  return modeler.get(name) as ServiceMap[K];
+}

@@ -1,0 +1,16 @@
+# Enviado à Vercel só o necessário para o build (npm ci + npm run build).
+node_modules
+dist
+test
+test-outputs
+coverage
+docs
+agents
+deploy
+.github
+.vscode
+.devenv*
+.direnv
+.env
+.env.*
+*.log

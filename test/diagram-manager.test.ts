@@ -1,0 +1,131 @@
+import { describe, test, expect, beforeEach } from 'vitest';
+import {
+  generateDiagramId,
+  getDiagram,
+  storeDiagram,
+  deleteDiagram,
+  getAllDiagrams,
+  clearDiagrams,
+  createModeler,
+  INITIAL_XML,
+  MAX_DIAGRAMS,
+} from '../src/diagram-manager';
+import type { DiagramState } from '../src/types';
+
+describe('diagram-manager', () => {
+  beforeEach(() => {
+    clearDiagrams();
+  });
+
+  describe('generateDiagramId', () => {
+    test('produces unique IDs', () => {
+      const a = generateDiagramId();
+      const b = generateDiagramId();
+      expect(a).not.toBe(b);
+    });
+
+    test("starts with 'diagram_'", () => {
+      expect(generateDiagramId()).toMatch(/^diagram_/);
+    });
+  });
+
+  describe('store / get / delete / clear', () => {
+    test('returns undefined for unknown IDs', () => {
+      expect(getDiagram('nope')).toBeUndefined();
+    });
+
+    test('round-trips a stored diagram', () => {
+      const state: DiagramState = {
+        modeler: {} as any,
+        xml: '<xml/>',
+      };
+      storeDiagram('d1', state);
+      expect(getDiagram('d1')).toBe(state);
+    });
+
+    test('deleteDiagram removes a specific entry', () => {
+      storeDiagram('d1', { modeler: {} as any, xml: '' });
+      storeDiagram('d2', { modeler: {} as any, xml: '' });
+      expect(deleteDiagram('d1')).toBe(true);
+      expect(getDiagram('d1')).toBeUndefined();
+      expect(getDiagram('d2')).toBeDefined();
+    });
+
+    test('deleteDiagram returns false for unknown ID', () => {
+      expect(deleteDiagram('nope')).toBe(false);
+    });
+
+    test('clearDiagrams removes all entries', () => {
+      storeDiagram('d1', { modeler: {} as any, xml: '' });
+      clearDiagrams();
+      expect(getDiagram('d1')).toBeUndefined();
+    });
+  });
+
+  describe('getAllDiagrams', () => {
+    test('returns the internal map', () => {
+      storeDiagram('d1', { modeler: {} as any, xml: '' });
+      storeDiagram('d2', { modeler: {} as any, xml: '' });
+      const all = getAllDiagrams();
+      expect(all.size).toBe(2);
+      expect(all.has('d1')).toBe(true);
+    });
+  });
+
+  describe('INITIAL_XML', () => {
+    test('contains the camunda namespace', () => {
+      expect(INITIAL_XML).toContain('xmlns:camunda');
+    });
+
+    test('is valid-ish BPMN (contains definitions)', () => {
+      expect(INITIAL_XML).toContain('<bpmn:definitions');
+      expect(INITIAL_XML).toContain('</bpmn:definitions>');
+    });
+  });
+
+  describe('createModeler', () => {
+    test('returns a modeler with elementRegistry service', async () => {
+      const modeler = await createModeler();
+      const registry = modeler.get('elementRegistry');
+      expect(registry).toBeDefined();
+    });
+
+    test('initialised diagram contains a Process element', async () => {
+      const modeler = await createModeler();
+      const registry = modeler.get('elementRegistry');
+      const processes = registry.filter((el: any) => el.type === 'bpmn:Process');
+      expect(processes.length).toBe(1);
+    });
+  });
+
+  describe('MAX_DIAGRAMS eviction', () => {
+    test('MAX_DIAGRAMS is a positive integer', () => {
+      expect(Number.isInteger(MAX_DIAGRAMS)).toBe(true);
+      expect(MAX_DIAGRAMS).toBeGreaterThan(0);
+    });
+
+    test('storeDiagram evicts oldest entry when limit is reached', () => {
+      // Fill up to limit using dummy states
+      for (let i = 0; i < MAX_DIAGRAMS; i++) {
+        storeDiagram(`d${i}`, { modeler: {} as any, xml: '' });
+      }
+      expect(getAllDiagrams().size).toBe(MAX_DIAGRAMS);
+
+      // Adding one more should evict d0 (oldest)
+      storeDiagram('overflow', { modeler: {} as any, xml: '' });
+      expect(getAllDiagrams().size).toBe(MAX_DIAGRAMS);
+      expect(getDiagram('d0')).toBeUndefined();
+      expect(getDiagram('overflow')).toBeDefined();
+    });
+
+    test('updating an existing diagram does not trigger eviction', () => {
+      for (let i = 0; i < MAX_DIAGRAMS; i++) {
+        storeDiagram(`d${i}`, { modeler: {} as any, xml: '' });
+      }
+      // Update d0 — should not evict anything
+      storeDiagram('d0', { modeler: {} as any, xml: 'updated' });
+      expect(getAllDiagrams().size).toBe(MAX_DIAGRAMS);
+      expect(getDiagram('d0')?.xml).toBe('updated');
+    });
+  });
+});

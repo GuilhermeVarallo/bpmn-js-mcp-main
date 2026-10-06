@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "bpmn": {
+      "command": "npx",
+      "args": [
+        ".",
+        "--persist-dir", "./memory"
+        
+      ],
+      "env": {}
+    }
+  }
+}
