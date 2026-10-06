@@ -6,12 +6,11 @@
 
 # ── Build ────────────────────────────────────────────────────────────────────
 FROM node:22.22-alpine3.22 AS build
-# bpmn-auto-layout e bpmn-to-image são dependências git (github:datakurre/...)
-# compiladas no `npm ci` (script prepare): o build precisa de git e de acesso
-# HTTPS a github.com.
-RUN apk add --no-cache git
 WORKDIR /app
+# bpmn-auto-layout e bpmn-to-image vêm pré-compilados em vendor/ (ver
+# vendor/README.md): o build não precisa de git nem de acesso ao GitHub.
 COPY package.json package-lock.json ./
+COPY vendor ./vendor
 COPY esbuild.config.mjs tsconfig.json tsconfig.mcp-apps.json ./
 COPY src ./src
 RUN npm ci && npm prune --omit=dev

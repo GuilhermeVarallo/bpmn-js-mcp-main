@@ -55,10 +55,9 @@ cliente MCP ──HTTPS──▶ F5 / balanceador ──HTTP──▶ nginx :808
 ## Pré-requisitos
 
 - Docker 24+ com Docker Compose v2.
-- No **build**: acesso HTTPS a `registry.npmjs.org` **e a `github.com`** — duas
-  dependências (`bpmn-auto-layout` e `bpmn-to-image`) vêm direto do GitHub e são
-  compiladas no `npm ci`. Se o ambiente de build da FGV não alcançar o GitHub,
-  construir a imagem fora e publicá-la no registro interno.
+- No **build**: acesso HTTPS a `registry.npmjs.org`. As duas dependências que
+  só existem no GitHub (`bpmn-auto-layout` e `bpmn-to-image`) vêm pré-compiladas
+  em [`vendor/`](vendor/README.md), então o build não precisa de git nem do GitHub.
 - Em **execução**: nenhum acesso externo.
 - TLS terminado na frente (F5/balanceador). O nginx escuta HTTP puro em 8080.
 
