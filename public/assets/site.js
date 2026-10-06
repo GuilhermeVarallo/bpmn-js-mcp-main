@@ -1,21 +1,25 @@
-// Página de apresentação: endereço real do servidor, botões "Copiar" e
-// indicador de status. Arquivo externo porque a CSP não permite script inline.
+// Guia do MCP de BPMN: botões "Copiar", endereço do servidor na nuvem e
+// destaque da seção atual no índice. Arquivo externo porque a CSP não
+// permite script inline.
 (function () {
   'use strict';
 
+  // Troca o "<este-site>" do exemplo da nuvem pelo endereço de onde a página foi aberta.
   var endpoint = window.location.origin + '/mcp';
-
-  // Troca o "<este-site>" dos exemplos pelo endereço de onde a página foi aberta.
   document.querySelectorAll('[data-endpoint]').forEach(function (el) {
     el.textContent = endpoint;
   });
 
+  // ── Copiar ──────────────────────────────────────────────────────────────
+
   function markCopied(button) {
+    var original = button.getAttribute('data-label') || button.textContent;
+    button.setAttribute('data-label', original);
     button.setAttribute('data-done', '');
     button.textContent = 'Copiado!';
     window.setTimeout(function () {
       button.removeAttribute('data-done');
-      button.textContent = 'Copiar';
+      button.textContent = original;
     }, 1800);
   }
 
@@ -57,17 +61,32 @@
     });
   });
 
-  // Status do serviço (rota pública /health, sem token).
-  var status = document.getElementById('status');
-  if (status && window.fetch) {
-    fetch('/health', { cache: 'no-store' })
-      .then(function (res) {
-        status.setAttribute('data-state', res.ok ? 'ok' : 'down');
-        status.textContent = res.ok ? '● serviço no ar' : '● serviço indisponível';
-      })
-      .catch(function () {
-        status.setAttribute('data-state', 'down');
-        status.textContent = '● serviço indisponível';
+  // ── Índice: marca a seção que está na tela ──────────────────────────────
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+  if (!links.length || !('IntersectionObserver' in window)) return;
+
+  var byId = {};
+  links.forEach(function (a) {
+    byId[a.getAttribute('href').slice(1)] = a;
+  });
+
+  var observer = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        links.forEach(function (a) {
+          a.removeAttribute('aria-current');
+        });
+        var link = byId[entry.target.id];
+        if (link) link.setAttribute('aria-current', 'true');
       });
-  }
+    },
+    { rootMargin: '-45% 0px -50% 0px' }
+  );
+
+  Object.keys(byId).forEach(function (id) {
+    var section = document.getElementById(id);
+    if (section) observer.observe(section);
+  });
 })();

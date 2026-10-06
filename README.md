@@ -159,8 +159,11 @@ e use `http://127.0.0.1:8081/mcp`.
 
 ## Conectar um cliente
 
-A página na raiz do serviço (`https://<host-publicado>/`) traz o passo a passo,
-com o endereço já preenchido, prompts prontos e a lista de ferramentas.
+A página na raiz do serviço (`https://<host-publicado>/`) é o guia para quem vai
+usar: instalação **local em 1 prompt** (o Claude clona este repositório e registra o
+servidor via stdio, sem token), cadastro manual no Claude Code/Desktop, os 7 usos com
+prompts prontos, as ferramentas e “Deu erro?”. O uso pela nuvem, com token, fica num
+bloco à parte. Fontes Inter e Instrument Serif em `public/assets/fonts` (licença OFL).
 
 Claude Code:
 
@@ -266,7 +269,7 @@ test/                  vitest (inclui http-server.test.ts)
 deploy/nginx/          imagem e configuração do nginx de borda
 api/mcp.js             função da Vercel
 vercel.json            configuração da Vercel (rotas, cabeçalhos, região)
-public/                página de apresentação em / (HTML, CSS e JS sem inline, por causa da CSP)
+public/                guia em / (HTML, CSS, JS e fontes locais; nada inline, por causa da CSP)
 Dockerfile             imagem do app
 docker-compose.yml     app + nginx; perfil vercel-dev = modo Vercel local
 .env.docker.example    variáveis do compose, comentadas

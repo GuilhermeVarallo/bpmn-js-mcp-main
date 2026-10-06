@@ -3,383 +3,663 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BPMN MCP — modele processos conversando com o Claude</title>
+    <title>Claude + BPMN — guia de instalação do MCP de BPMN</title>
     <meta
       name="description"
-      content="Como conectar o Claude ao servidor BPMN MCP e criar, revisar e exportar diagramas BPMN 2.0 em português."
+      content="Guia em português para dar ao Claude ferramentas de modelagem BPMN 2.0: instale em 1 prompt, no seu computador, sem custo."
     />
-    <meta name="robots" content="noindex" />
+    <link
+      rel="preload"
+      href="/assets/fonts/inter-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="stylesheet" href="/assets/site.css" />
     <script src="/assets/site.js" defer></script>
   </head>
   <body>
-    <header class="topbar">
-      <div class="wrap topbar-inner">
-        <span class="brand">BPMN&nbsp;MCP</span>
-        <span class="status" id="status" data-state="checking">verificando serviço…</span>
-      </div>
-    </header>
-
-    <main class="wrap">
-      <!-- ── Hero ─────────────────────────────────────────────────────── -->
-      <section class="hero">
-        <p class="eyebrow">Guia prático · sem instalar nada</p>
-        <h1><em>Claude</em> + BPMN: modele processos em uma conversa</h1>
-        <p class="lead">
-          Conecte o seu Claude a este servidor e ele passa a criar, revisar e exportar diagramas
-          BPMN 2.0 de verdade — com o mesmo motor do bpmn.io e do Camunda Modeler. Você descreve,
-          ele desenha.
-        </p>
-        <div class="actions">
-          <a class="btn btn-dark" href="#conectar">Conectar em 1 minuto ↓</a>
-          <a class="btn btn-light" href="#ferramentas">Ver as ferramentas</a>
-        </div>
-        <figure class="hero-figure">
-          <img
-            src="/assets/exemplo-pedido.png"
-            width="1256"
-            height="460"
-            alt="Diagrama BPMN gerado por este servidor: pedido recebido, analisar pedido, decisão 'Pedido válido?', com os caminhos Sim (faturar pedido, pedido aprovado) e Não (pedido recusado)."
-          />
-          <figcaption>
-            Gerado por este servidor a partir de um pedido em português: “pedido chega, é analisado;
-            se for válido, fatura; se não, recusa”.
-          </figcaption>
-        </figure>
-      </section>
-
-      <!-- ── O que dá para fazer ──────────────────────────────────────── -->
-      <section>
-        <h2>O que o seu Claude passa a fazer</h2>
-        <ul class="checks">
-          <li>Desenhar um processo a partir de uma descrição em texto livre</li>
-          <li>Transformar um procedimento ou POP em fluxo BPMN</li>
-          <li>Organizar responsabilidades em pools e raias</li>
-          <li>Revisar o diagrama contra dezenas de regras de boas práticas</li>
-          <li>Editar um <code>.bpmn</code> que você já tem</li>
-          <li>Entregar o resultado em PNG, SVG ou XML (abre no Camunda Modeler e no bpmn.io)</li>
-          <li>Preparar o processo para execução no Camunda 7 / Operaton</li>
-        </ul>
-      </section>
-
-      <!-- ── Como funciona ─────────────────────────────────────────────── -->
-      <section>
-        <h2>Como funciona</h2>
-        <div class="cards">
-          <div class="card">
-            <span class="card-num">1</span>
-            <h3>Você conversa</h3>
-            <p>Pede em português, como pediria a um analista de processos.</p>
+    <main>
+      <!-- ══ Hero ════════════════════════════════════════════════════════ -->
+      <section class="panel hero" id="topo">
+        <div class="hero-grid">
+          <div class="hero-text">
+            <p class="eyebrow">Guia prático · sem programar</p>
+            <h1><em>Claude</em> + BPMN: modele processos só conversando</h1>
+            <p class="lead">
+              Como dar ao Claude 20 ferramentas de modelagem BPMN 2.0. Gratuito, de código aberto e
+              rodando no seu próprio computador.
+            </p>
+            <div class="actions">
+              <a class="btn btn-dark" href="#instalacao">Instalar em 1 prompt ↓</a>
+              <a class="btn btn-light" href="#superpoderes">Ver o que ele faz</a>
+            </div>
           </div>
-          <div class="card">
-            <span class="card-num">2</span>
-            <h3>O Claude usa as ferramentas</h3>
+
+          <aside class="hero-card" aria-label="Exemplo de uso">
+            <p class="hero-card-title">Você conta como o processo funciona.</p>
+            <p class="hero-card-title accent">O Claude entrega o BPMN.</p>
+            <div class="hero-quote">
+              <span class="mini-label">O pedido</span>
+              “O colaborador manda o comprovante, o gestor avalia; se aprovar, o financeiro paga o
+              reembolso.”
+            </div>
+            <p class="hero-connected"><span class="spark">✳</span> Claude usando o MCP de BPMN</p>
+            <img
+              src="/assets/exemplo-raias.png"
+              width="1742"
+              height="940"
+              alt="Diagrama BPMN gerado pelo MCP: pool Empresa com as raias Colaborador, Gestor e Financeiro; despesa realizada, enviar comprovante, avaliar pedido, decisão 'Aprovado?' com os caminhos Sim (pagar reembolso, reembolso pago) e Não (pedido recusado)."
+            />
+            <p class="hero-card-foot">
+              Sai como arquivo <strong>.bpmn editável</strong>, que abre em qualquer modelador.
+            </p>
+          </aside>
+        </div>
+
+        <h2 class="checks-title">Depois deste guia, o seu Claude vai saber, em português:</h2>
+        <ul class="checks">
+          <li>Montar um processo inteiro a partir de uma descrição em texto</li>
+          <li>Converter um POP ou procedimento escrito em fluxo</li>
+          <li>Dividir as etapas por responsável em raias (cliente, vendas, operação…)</li>
+          <li>Revisar o diagrama e mostrar os erros de modelagem antes da entrega</li>
+          <li>Abrir e alterar arquivos .bpmn que você já tem</li>
+          <li>Exportar em PNG, SVG, BPMN 2.0, HTML interativo e GIF animado</li>
+          <li>Deixar o processo pronto para rodar no Camunda 7 / Operaton</li>
+        </ul>
+
+        <nav class="toc" aria-label="Neste guia">
+          <span class="toc-label">Neste guia:</span>
+          <a href="#o-que-e">O que é</a>
+          <a href="#ferramentas">1 · Ferramentas</a>
+          <a href="#antes">2 · Antes de começar</a>
+          <a href="#instalacao">3 · Instalação</a>
+          <a href="#superpoderes">4 · Superpoderes</a>
+          <a href="#boas-praticas">Boas práticas</a>
+          <a href="#exemplo">Exemplo real</a>
+        </nav>
+      </section>
+
+      <!-- ══ O que é ═════════════════════════════════════════════════════ -->
+      <section class="panel" id="o-que-e">
+        <div class="split">
+          <header>
+            <span class="pill">Início</span>
+            <h2>O que é o <span class="soft">MCP de BPMN</span></h2>
+          </header>
+          <div class="split-body">
             <p>
-              Ele chama este servidor (protocolo MCP) para criar elementos, conectar, organizar o
-              layout e validar.
+              O MCP (Model Context Protocol) é a forma de plugar ferramentas novas no Claude. Com o
+              MCP de BPMN, ele deixa de apenas descrever o processo em texto e passa a
+              <strong>criar, alterar, validar e exportar diagramas de verdade</strong>.
+            </p>
+            <p>
+              O servidor é o
+              <a href="https://github.com/GuilhermeVarallo/bpmn-js-mcp-main">bpmn-js-mcp</a>, de
+              código aberto (licença MIT). Por baixo, ele usa o <strong>bpmn-js</strong>, o mesmo
+              motor do bpmn.io e do Camunda Modeler — então tudo o que ele gera abre em qualquer
+              ferramenta compatível com BPMN 2.0.
+            </p>
+            <p>Sem cadastro, sem assinatura, e os seus processos não saem do seu computador.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Etapa 1 — Ferramentas ═══════════════════════════════════════ -->
+      <section class="panel" id="ferramentas">
+        <div class="split">
+          <header>
+            <span class="pill">Etapa 1</span>
+            <h2>Todas as ferramentas <span class="soft">disponíveis</span></h2>
+            <p class="muted">
+              São 20. Não precisa decorar: o Claude escolhe a certa conforme o que você pede. Abra
+              cada grupo para ver para que serve cada uma.
+            </p>
+          </header>
+          <div class="split-body accordion">
+            <details>
+              <summary>Diagramas <span class="count">(5)</span></summary>
+              <ul class="tool-list">
+                <li>
+                  <b>create_bpmn_diagram</b> Começa um diagrama novo, copia um existente ou importa
+                  um .bpmn
+                </li>
+                <li>
+                  <b>list_bpmn_diagrams</b> Mostra os diagramas abertos e compara duas versões
+                </li>
+                <li><b>delete_bpmn_diagram</b> Tira um diagrama da memória</li>
+                <li><b>bpmn_history</b> Desfaz e refaz mudanças</li>
+                <li><b>batch_bpmn_operations</b> Aplica várias mudanças numa chamada só</li>
+              </ul>
+            </details>
+            <details>
+              <summary>Elementos e conexões <span class="count">(6)</span></summary>
+              <ul class="tool-list">
+                <li>
+                  <b>add_bpmn_elements</b> Inclui tarefas, eventos e gateways, já ligados em
+                  sequência se quiser
+                </li>
+                <li>
+                  <b>connect_bpmn_elements</b> Liga elementos com fluxos, com rótulos como “Sim” e
+                  “Não”
+                </li>
+                <li><b>delete_bpmn_element</b> Remove elementos ou ligações</li>
+                <li><b>move_bpmn_element</b> Move, redimensiona ou troca um elemento de raia</li>
+                <li>
+                  <b>set_bpmn_element_properties</b> Ajusta propriedades, timers, mensagens, erros e
+                  extensões Camunda
+                </li>
+                <li><b>manage_bpmn_root_elements</b> Cria mensagens e sinais compartilhados</li>
+              </ul>
+            </details>
+            <details>
+              <summary>Pools e raias <span class="count">(3)</span></summary>
+              <ul class="tool-list">
+                <li>
+                  <b>create_bpmn_participant</b> Cria pools, inclusive em volta de um processo
+                  pronto
+                </li>
+                <li><b>create_bpmn_lanes</b> Cria raias e distribui as etapas entre elas</li>
+                <li><b>analyze_bpmn_lanes</b> Avalia a divisão em raias e sugere melhorias</li>
+              </ul>
+            </details>
+            <details>
+              <summary>Layout <span class="count">(2)</span></summary>
+              <ul class="tool-list">
+                <li>
+                  <b>layout_bpmn_diagram</b> Organiza tudo automaticamente, da esquerda para a
+                  direita
+                </li>
+                <li><b>align_bpmn_elements</b> Alinha e espaça os elementos escolhidos</li>
+              </ul>
+            </details>
+            <details>
+              <summary>Revisão e exportação <span class="count">(4)</span></summary>
+              <ul class="tool-list">
+                <li>
+                  <b>validate_bpmn_diagram</b> Confere o diagrama com dezenas de regras de boas
+                  práticas
+                </li>
+                <li>
+                  <b>export_bpmn</b> Gera BPMN 2.0, SVG, PNG, GIF/MP4 animado ou HTML interativo
+                </li>
+                <li><b>list_bpmn_elements</b> Lista os elementos com tipo, posição e ligações</li>
+                <li><b>list_bpmn_process_variables</b> Mostra as variáveis usadas no processo</li>
+              </ul>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Etapa 2 — Antes de começar ══════════════════════════════════ -->
+      <section class="panel" id="antes">
+        <div class="split">
+          <header>
+            <span class="pill">Etapa 2</span>
+            <h2>Antes de <span class="soft">começar</span></h2>
+            <p class="muted">Três coisas precisam estar instaladas no seu computador.</p>
+          </header>
+          <div class="split-body">
+            <ol class="numbered">
+              <li>
+                <span class="n">1</span>
+                <div>
+                  <strong>Claude Code ou Claude Desktop</strong>
+                  <p>Instalado e com a sua conta conectada.</p>
+                </div>
+              </li>
+              <li>
+                <span class="n">2</span>
+                <div>
+                  <strong>Node.js 22 ou mais recente</strong>
+                  <p>Em <a href="https://nodejs.org">nodejs.org</a> — escolha a versão LTS.</p>
+                </div>
+              </li>
+              <li>
+                <span class="n">3</span>
+                <div>
+                  <strong>Git</strong>
+                  <p>Em <a href="https://git-scm.com">git-scm.com</a>.</p>
+                </div>
+              </li>
+            </ol>
+            <p class="callout">
+              <strong>Não sabe se já tem?</strong> Sem problema: o prompt da próxima etapa manda o
+              Claude conferir e te orientar a instalar o que estiver faltando.
             </p>
           </div>
-          <div class="card">
-            <span class="card-num">3</span>
-            <h3>Você recebe o diagrama</h3>
-            <p>Em imagem para apresentar ou em XML BPMN 2.0 para abrir em qualquer modelador.</p>
-          </div>
         </div>
-        <p class="note">
-          O servidor fica na nuvem: não há nada para instalar além do próprio Claude. O acesso é
-          protegido por <strong>token</strong> — peça o seu a quem administra este serviço.
-        </p>
       </section>
 
-      <!-- ── Conectar ──────────────────────────────────────────────────── -->
-      <section id="conectar">
-        <p class="step">Passo 1</p>
-        <h2>Conectar o Claude</h2>
-        <p>Você vai precisar de duas coisas:</p>
-        <ul class="plain">
-          <li>
-            O endereço do servidor:
-            <code class="endpoint" data-endpoint>https://&lt;este-site&gt;/mcp</code>
-          </li>
-          <li>O seu <strong>token</strong> de acesso (64 letras e números).</li>
-        </ul>
+      <!-- ══ Etapa 3 — Instalação ════════════════════════════════════════ -->
+      <section class="panel" id="instalacao">
+        <span class="pill">Etapa 3</span>
+        <h2>Instalação <span class="soft">em 1 prompt</span></h2>
+        <p class="muted">Copie o prompt abaixo e cole no Claude Code ou no Claude Desktop:</p>
 
-        <h3>Claude Code (terminal)</h3>
-        <p>Cole no terminal, trocando <code>&lt;seu-token&gt;</code> pelo seu token:</p>
-        <div class="codebox">
-          <pre
-            id="cmd-claude-code"
-          ><code>claude mcp add --transport http bpmn <span data-endpoint>https://&lt;este-site&gt;/mcp</span> --header "Authorization: Bearer &lt;seu-token&gt;"</code></pre>
-          <button class="copy" type="button" data-copy="cmd-claude-code">Copiar</button>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span>Prompt de instalação</span>
+            <button class="copy copy-lime" type="button" data-copy="prompt-instalacao">
+              Copiar prompt
+            </button>
+          </div>
+          <pre id="prompt-instalacao">
+Claude, instale para mim o servidor MCP de BPMN que está neste repositório:
+https://github.com/GuilhermeVarallo/bpmn-js-mcp-main
+
+1. Confira se o meu computador tem Node.js 22 ou mais novo e o Git. O que estiver faltando, me ajude a instalar.
+2. Baixe o repositório com git clone para uma pasta que não vá mudar de lugar (sugestão: Documentos/MCP BPMN). Dentro dela, rode "npm ci" e verifique se o arquivo dist/index.js foi criado.
+3. Cadastre o servidor com o nome "bpmn":
+   - no Claude Code: claude mcp add --scope user bpmn -- node "&lt;pasta&gt;/dist/index.js"
+   - no Claude Desktop: inclua o servidor no arquivo claude_desktop_config.json
+4. Faça um teste: um diagrama com início, uma tarefa e fim; valide e exporte em PNG.
+
+Quando precisar que eu faça alguma coisa, me explique passo a passo. No final, me mostre como usar.</pre
+          >
         </div>
 
-        <h3>VS Code (GitHub Copilot / agentes)</h3>
         <p>
-          Crie o arquivo <code>.vscode/mcp.json</code> no seu projeto. O VS Code pergunta o token na
-          primeira vez e guarda com segurança:
+          Pronto. O Claude baixa o projeto, instala o que for preciso, cadastra o servidor e faz o
+          teste. No fim ele vai pedir para você reiniciar o aplicativo — quando o conector
+          <strong>bpmn</strong> aparecer ativo, está tudo funcionando.
         </p>
-        <div class="codebox">
-          <pre id="cmd-vscode"><code>{
-  "servers": {
+
+        <p class="muted small">Quer fazer você mesmo ou entender o que o Claude fez?</p>
+
+        <div class="accordion">
+          <details>
+            <summary>Instalação manual, passo a passo</summary>
+            <div class="details-body">
+              <p>No terminal, na pasta onde você quer deixar o MCP:</p>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span>Terminal</span>
+                  <button class="copy" type="button" data-copy="cmd-manual">Copiar</button>
+                </div>
+                <pre id="cmd-manual">
+git clone https://github.com/GuilhermeVarallo/bpmn-js-mcp-main.git "MCP BPMN"
+cd "MCP BPMN"
+npm ci</pre
+                >
+              </div>
+              <p>
+                O <code>npm ci</code> instala as dependências e já gera o servidor em
+                <code>dist/index.js</code>. Falta só cadastrá-lo no Claude (itens abaixo).
+              </p>
+            </div>
+          </details>
+
+          <details>
+            <summary>Cadastrar no Claude Code</summary>
+            <div class="details-body">
+              <p>Troque o caminho pelo da pasta onde você clonou:</p>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span>Terminal</span>
+                  <button class="copy" type="button" data-copy="cmd-claude-code">Copiar</button>
+                </div>
+                <pre id="cmd-claude-code">
+claude mcp add --scope user bpmn -- node "C:/Users/&lt;voce&gt;/Documents/MCP BPMN/dist/index.js"</pre
+                >
+              </div>
+              <p>
+                O <code>--scope user</code> deixa o servidor disponível em qualquer projeto. Confira
+                com <code>claude mcp list</code>.
+              </p>
+            </div>
+          </details>
+
+          <details>
+            <summary>Cadastrar no Claude Desktop</summary>
+            <div class="details-body">
+              <p>
+                No Claude Desktop, abra
+                <strong>Configurações → Desenvolvedor → Editar configuração</strong> (o arquivo
+                <code>claude_desktop_config.json</code>) e inclua:
+              </p>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span>claude_desktop_config.json</span>
+                  <button class="copy" type="button" data-copy="cmd-desktop">Copiar</button>
+                </div>
+                <pre id="cmd-desktop">
+{
+  "mcpServers": {
     "bpmn": {
-      "type": "http",
-      "url": "<span data-endpoint>https://&lt;este-site&gt;/mcp</span>",
-      "headers": { "Authorization": "Bearer ${input:bpmn-token}" }
+      "command": "node",
+      "args": ["C:\\Users\\&lt;voce&gt;\\Documents\\MCP BPMN\\dist\\index.js"]
     }
-  },
-  "inputs": [
-    { "id": "bpmn-token", "type": "promptString", "password": true, "description": "Token do BPMN MCP" }
-  ]
-}</code></pre>
-          <button class="copy" type="button" data-copy="cmd-vscode">Copiar</button>
+  }
+}</pre
+                >
+              </div>
+              <p>
+                No Windows, cada barra do caminho vai dobrada (<code>\\</code>). No Mac, use o
+                caminho normal, por exemplo
+                <code>/Users/&lt;voce&gt;/Documents/MCP BPMN/dist/index.js</code>. Depois feche o
+                Claude Desktop por completo e abra de novo.
+              </p>
+            </div>
+          </details>
+
+          <details>
+            <summary>Deu erro? Os mais comuns</summary>
+            <div class="details-body">
+              <ul class="errors">
+                <li>
+                  <strong>“node” ou “git” não é reconhecido.</strong> O programa não está instalado
+                  ou o terminal foi aberto antes da instalação. Instale e abra um terminal novo.
+                </li>
+                <li>
+                  <strong>O <code>npm ci</code> falhou.</strong> Confira a versão com
+                  <code>node -v</code> (precisa ser 22 ou mais nova), apague a pasta
+                  <code>node_modules</code> e rode de novo.
+                </li>
+                <li>
+                  <strong>O conector bpmn não aparece.</strong> Feche o Claude por completo
+                  (inclusive da bandeja do sistema) e abra de novo. Se continuar, confira se o
+                  caminho do <code>dist/index.js</code> está certo e se o arquivo existe.
+                </li>
+              </ul>
+            </div>
+          </details>
+
+          <details>
+            <summary>Não pode instalar nada? Use o servidor na nuvem</summary>
+            <div class="details-body">
+              <p>
+                Há também uma versão deste servidor hospedada na internet, para quem não pode
+                instalar programas. Ela pede um <strong>token de acesso</strong> (fornecido por quem
+                administra o serviço) e só funciona no Claude Code e no VS Code:
+              </p>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span>Terminal</span>
+                  <button class="copy" type="button" data-copy="cmd-nuvem">Copiar</button>
+                </div>
+                <pre
+                  id="cmd-nuvem"
+                >claude mcp add --transport http bpmn <span data-endpoint>https://&lt;este-site&gt;/mcp</span> --header "Authorization: Bearer &lt;seu-token&gt;"</pre>
+              </div>
+              <p>
+                Na nuvem, os diagramas ficam guardados por 7 dias e o resultado volta na conversa
+                (XML, SVG ou PNG), sem gravar arquivos no seu computador.
+              </p>
+            </div>
+          </details>
         </div>
-
-        <details>
-          <summary>E o Claude Desktop ou o claude.ai?</summary>
-          <p>
-            Os conectores remotos adicionados pela interface do Claude Desktop e do claude.ai exigem
-            login OAuth, e este servidor usa token. Por enquanto, use o Claude Code ou o VS Code.
-          </p>
-        </details>
       </section>
 
-      <!-- ── Testar ────────────────────────────────────────────────────── -->
-      <section>
-        <p class="step">Passo 2</p>
-        <h2>Testar a conexão</h2>
-        <p>Abra uma conversa nova e cole:</p>
-        <div class="codebox prompt">
-          <pre
-            id="prompt-teste"
-          ><code>Use as ferramentas BPMN para criar um processo simples: "Pedido recebido" → "Analisar pedido" → "Pedido concluído". Organize o layout e me mostre em PNG.</code></pre>
-          <button class="copy" type="button" data-copy="prompt-teste">Copiar</button>
+      <!-- ══ Etapa 4 — Superpoderes ══════════════════════════════════════ -->
+      <section class="panel" id="superpoderes">
+        <span class="pill">Etapa 4</span>
+        <h2>Os 7 <span class="soft">superpoderes</span></h2>
+        <p class="muted">
+          Agora vem a parte boa. Cada cartão traz o que ele faz, um prompt pronto para copiar e o
+          resultado que você pode esperar.
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <span class="card-num">01</span>
+            <h3>Desenhar um processo do zero</h3>
+            <p class="card-desc">
+              Conte o processo do jeito que contaria a um colega. O Claude monta o diagrama.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p1">Copiar</button>
+              </div>
+              <pre id="p1">
+Crie um diagrama BPMN da contratação de fornecedor: compras recebe a solicitação, pede três orçamentos e escolhe o melhor; se o valor passar de R$ 10 mil, a diretoria precisa aprovar antes do contrato. Exporte em PNG e em .bpmn.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> início, tarefas, um gateway para a decisão do valor
+              com os dois caminhos rotulados e o fim — tudo organizado da esquerda para a direita e
+              salvo como imagem e como BPMN 2.0.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">02</span>
+            <h3>Transformar um documento em fluxo</h3>
+            <p class="card-desc">
+              Tem um POP, um procedimento em Word ou a ata de uma reunião? Cole o texto.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p2">Copiar</button>
+              </div>
+              <pre id="p2">
+Abaixo está o procedimento de [admissão de funcionários]. Converta em um fluxo BPMN fiel ao texto, apontando as decisões e quem executa cada etapa. No final, liste o que o documento deixa ambíguo.
+
+[cole o texto aqui]</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> o texto vira desenho, com as decisões e os
+              responsáveis à mostra. De quebra, aparecem as lacunas que o documento não explica.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">03</span>
+            <h3>Separar responsabilidades em raias</h3>
+            <p class="card-desc">
+              Mostre quem faz o quê — ótimo para alinhar áreas e apresentar ao cliente.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p3">Copiar</button>
+              </div>
+              <pre id="p3">
+Ponha esse processo em um pool "Empresa" com as raias Solicitante, Compras e Diretoria. Organize o layout primeiro e só depois coloque cada etapa na raia de quem a executa.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> o mesmo fluxo em faixas por responsável, com as
+              passagens de uma área para outra visíveis. O Claude também sabe avaliar a divisão e
+              sugerir outra melhor.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">04</span>
+            <h3>Revisar e encontrar erros</h3>
+            <p class="card-desc">
+              O MCP traz um revisor com dezenas de regras de boas práticas de BPMN.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p4">Copiar</button>
+              </div>
+              <pre id="p4">
+Valide o diagrama e me explique, sem jargão, cada erro e cada aviso. Corrija os erros e diga quais avisos eu posso deixar de lado.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> problemas como caminho sem fim, decisão sem
+              fechamento, loop sem limite ou fluxos que se juntam sem gateway. Com erro grave, o
+              próprio revisor segura a exportação até a correção.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">05</span>
+            <h3>Editar diagramas que você já tem</h3>
+            <p class="card-desc">
+              Abre arquivos BPMN 2.0 de outras ferramentas, como o Camunda Modeler e o bpmn.io.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p5">Copiar</button>
+              </div>
+              <pre id="p5">
+Abra o arquivo C:\Processos\compras.bpmn, inclua uma etapa "Conferir nota fiscal" logo depois do recebimento do material e salve como uma nova versão.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> o diagrama aberto, alterado e salvo, sem você abrir
+              editor nenhum. Qualquer mudança pode ser desfeita.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">06</span>
+            <h3>Exportar para apresentar</h3>
+            <p class="card-desc">
+              O mesmo processo em vários formatos: proposta, documentação ou post.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p6">Copiar</button>
+              </div>
+              <pre id="p6">
+Exporte o processo em PNG com fundo branco para a apresentação, em SVG para a documentação e em GIF animado mostrando o fluxo acontecendo.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> PNG em alta resolução, SVG vetorial, BPMN 2.0, HTML
+              interativo ou animação (GIF, MP4, WebP). A animação leva alguns segundos a mais para
+              ficar pronta.
+            </p>
+          </article>
+
+          <article class="card">
+            <span class="card-num">07</span>
+            <h3>Preparar para automação</h3>
+            <p class="card-desc">
+              Para rodar o processo de verdade num motor de workflow, como Camunda 7 ou Operaton.
+            </p>
+            <div class="prompt-box">
+              <div class="prompt-bar">
+                <span>Prompt</span
+                ><button class="copy copy-pill" type="button" data-copy="p7">Copiar</button>
+              </div>
+              <pre id="p7">
+Deixe esse processo executável no Camunda 7: responsáveis e formulários nas tarefas de usuário, condições nos gateways e um prazo de 2 dias na aprovação da diretoria.</pre
+              >
+            </div>
+            <p class="expect">
+              <strong>O que esperar:</strong> um processo executável, com variáveis, formulários e
+              responsáveis definidos, pronto para importar no motor.
+            </p>
+          </article>
         </div>
-        <p>Se aparecer a imagem do diagrama, está tudo certo.</p>
       </section>
 
-      <!-- ── Prompts prontos ───────────────────────────────────────────── -->
-      <section id="prompts">
-        <p class="step">Passo 3</p>
-        <h2>Prompts prontos para o dia a dia</h2>
-        <p>Copie, troque o que está entre colchetes e envie.</p>
-
-        <article class="usecase">
-          <h3><span class="tag">1</span> Desenhar um processo do zero</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p1"
-            ><code>Modele em BPMN o processo de [reembolso de despesas]: [o colaborador envia o comprovante, o gestor aprova ou recusa; se aprovado, o financeiro paga em até 5 dias]. Nomeie as tarefas com verbo + objeto, use gateway para cada decisão, organize o layout, valide e me mostre em PNG.</code></pre>
-            <button class="copy" type="button" data-copy="p1">Copiar</button>
+      <!-- ══ Boas práticas ═══════════════════════════════════════════════ -->
+      <section class="panel" id="boas-praticas">
+        <div class="split">
+          <header>
+            <span class="pill">Na prática</span>
+            <h2>Boas práticas <span class="soft">e limites</span></h2>
+            <p class="muted">O que aprendemos usando o MCP em processos reais.</p>
+          </header>
+          <div class="split-body">
+            <ol class="numbered">
+              <li>
+                <span class="n">1</span>
+                <div>
+                  <strong>Peça o arquivo .bpmn no final.</strong>
+                  <p>
+                    O diagrama vive na memória enquanto o Claude está aberto. Se fechar sem
+                    exportar, ele se perde.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span class="n">2</span>
+                <div>
+                  <strong>Com raias, primeiro o layout.</strong>
+                  <p>
+                    Se o layout automático rodar depois de distribuir as raias, as etapas podem
+                    voltar todas para uma raia só. Organize antes e distribua depois.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span class="n">3</span>
+                <div>
+                  <strong>Nem todo aviso é defeito.</strong>
+                  <p>
+                    As regras de nome de tarefa foram feitas para o inglês e reclamam de nomes em
+                    português. Avisos de responsáveis e variáveis só importam se o processo for
+                    rodar no Camunda.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span class="n">4</span>
+                <div>
+                  <strong>A regra de negócio é com você.</strong>
+                  <p>
+                    O Claude cuida da notação. Se o desenho corresponde ao que acontece de fato na
+                    empresa, quem confirma é você — e quem vive o processo.
+                  </p>
+                </div>
+              </li>
+            </ol>
           </div>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">2</span> Transformar um documento em fluxo</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p2"
-            ><code>Abaixo está o procedimento [nome do POP]. Transforme em um diagrama BPMN fiel ao texto, sem inventar etapas; liste no final o que ficou ambíguo no documento.
-
-[cole aqui o texto do procedimento]</code></pre>
-            <button class="copy" type="button" data-copy="p2">Copiar</button>
-          </div>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">3</span> Separar responsabilidades em raias</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p3"
-            ><code>Coloque o processo em um pool "[nome da organização]" com raias para [Solicitante, Gestor, Financeiro]. Distribua cada tarefa na raia de quem a executa e reorganize o layout.</code></pre>
-            <button class="copy" type="button" data-copy="p3">Copiar</button>
-          </div>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">4</span> Revisar e encontrar erros</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p4"
-            ><code>Valide o diagrama e explique em português cada problema encontrado, do mais grave ao mais leve. Corrija os erros e me mostre o antes e o depois.</code></pre>
-            <button class="copy" type="button" data-copy="p4">Copiar</button>
-          </div>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">5</span> Editar um diagrama que você já tem</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p5"
-            ><code>Leia o arquivo [processo.bpmn], carregue o XML dele no servidor BPMN e [inclua uma etapa de aprovação da diretoria antes do pagamento]. Ao final, exporte o XML e salve por cima do arquivo.</code></pre>
-            <button class="copy" type="button" data-copy="p5">Copiar</button>
-          </div>
-          <p class="hint">
-            O servidor não acessa os seus arquivos: quem lê e salva é o Claude, na sua máquina. Por
-            isso o pedido fala em “carregar o XML”.
-          </p>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">6</span> Exportar para apresentar</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p6"
-            ><code>Exporte o diagrama em PNG para eu colar na apresentação e em XML para abrir no Camunda Modeler.</code></pre>
-            <button class="copy" type="button" data-copy="p6">Copiar</button>
-          </div>
-        </article>
-
-        <article class="usecase">
-          <h3><span class="tag">7</span> Preparar para automação</h3>
-          <div class="codebox prompt">
-            <pre
-              id="p7"
-            ><code>Torne o processo executável no Camunda 7: defina responsáveis nas tarefas de usuário, formulários com os campos [valor, justificativa], condições nos gateways e um timer de [2 dias] na aprovação. Liste as variáveis do processo no final.</code></pre>
-            <button class="copy" type="button" data-copy="p7">Copiar</button>
-          </div>
-        </article>
+        </div>
       </section>
 
-      <!-- ── Ferramentas ───────────────────────────────────────────────── -->
-      <section id="ferramentas">
-        <h2>Todas as ferramentas (20)</h2>
-        <p>Você não precisa chamá-las pelo nome: o Claude escolhe sozinho. Servem de referência.</p>
-
-        <details>
-          <summary>Diagramas <span class="count">5</span></summary>
-          <dl class="tools">
-            <dt><code>create_bpmn_diagram</code></dt>
-            <dd>Cria um diagrama em branco, copia outro ou importa um XML BPMN.</dd>
-            <dt><code>list_bpmn_diagrams</code></dt>
-            <dd>Lista os seus diagramas ou resume um deles; também compara dois.</dd>
-            <dt><code>delete_bpmn_diagram</code></dt>
-            <dd>Apaga um diagrama.</dd>
-            <dt><code>bpmn_history</code></dt>
-            <dd>Desfaz ou refaz alterações.</dd>
-            <dt><code>batch_bpmn_operations</code></dt>
-            <dd>Executa várias operações de uma vez.</dd>
-          </dl>
-        </details>
-
-        <details>
-          <summary>Elementos e conexões <span class="count">6</span></summary>
-          <dl class="tools">
-            <dt><code>add_bpmn_elements</code></dt>
-            <dd>Adiciona tarefas, eventos e gateways, já encadeados se quiser.</dd>
-            <dt><code>connect_bpmn_elements</code></dt>
-            <dd>Liga elementos com fluxos (com rótulo, como “Sim” e “Não”).</dd>
-            <dt><code>delete_bpmn_element</code></dt>
-            <dd>Remove elementos ou conexões.</dd>
-            <dt><code>move_bpmn_element</code></dt>
-            <dd>Move, redimensiona ou muda um elemento de raia.</dd>
-            <dt><code>list_bpmn_elements</code></dt>
-            <dd>Lista os elementos com tipo, nome, posição e ligações.</dd>
-            <dt><code>set_bpmn_element_properties</code></dt>
-            <dd>Define propriedades, eventos (timer, mensagem, erro) e extensões Camunda.</dd>
-          </dl>
-        </details>
-
-        <details>
-          <summary>Pools e raias <span class="count">3</span></summary>
-          <dl class="tools">
-            <dt><code>create_bpmn_participant</code></dt>
-            <dd>Cria pools, inclusive envolvendo um processo existente.</dd>
-            <dt><code>create_bpmn_lanes</code></dt>
-            <dd>Cria raias e distribui as tarefas entre elas.</dd>
-            <dt><code>analyze_bpmn_lanes</code></dt>
-            <dd>Sugere e avalia a organização das raias.</dd>
-          </dl>
-        </details>
-
-        <details>
-          <summary>Layout <span class="count">2</span></summary>
-          <dl class="tools">
-            <dt><code>layout_bpmn_diagram</code></dt>
-            <dd>Organiza o diagrama automaticamente, da esquerda para a direita.</dd>
-            <dt><code>align_bpmn_elements</code></dt>
-            <dd>Alinha e distribui elementos selecionados.</dd>
-          </dl>
-        </details>
-
-        <details>
-          <summary>Validação, exportação e automação <span class="count">4</span></summary>
-          <dl class="tools">
-            <dt><code>validate_bpmn_diagram</code></dt>
-            <dd>Confere o diagrama com as regras do bpmnlint e do Camunda 7.</dd>
-            <dt><code>export_bpmn</code></dt>
-            <dd>Entrega o diagrama em XML, SVG ou PNG.</dd>
-            <dt><code>manage_bpmn_root_elements</code></dt>
-            <dd>Cria mensagens e sinais compartilhados.</dd>
-            <dt><code>list_bpmn_process_variables</code></dt>
-            <dd>Lista as variáveis usadas no processo.</dd>
-          </dl>
-        </details>
-      </section>
-
-      <!-- ── Deu erro? ─────────────────────────────────────────────────── -->
-      <section id="erros">
-        <h2>Deu erro?</h2>
-        <details>
-          <summary>“Unauthorized” (401)</summary>
-          <p>
-            O token não chegou ou está errado. Confira se não ficou espaço ou quebra de linha a mais
-            ao colar, e se o cabeçalho é exatamente
-            <code>Authorization: Bearer &lt;token&gt;</code>. Abrir <code>/mcp</code> direto no
-            navegador sempre dá 401: ele não envia o token.
-          </p>
-        </details>
-        <details>
-          <summary>“Not found” ou a página pede login da Vercel</summary>
-          <p>
-            Use o endereço de produção terminado em <code>/mcp</code>. Os endereços de prévia
-            (<code>…-git-…vercel.app</code>) ficam atrás do login da Vercel, que o Claude não
-            consegue fazer.
-          </p>
-        </details>
-        <details>
-          <summary>“Diagram not found”</summary>
-          <p>
-            Os diagramas ficam guardados por 7 dias sem uso, até 20 por token. Passado isso, peça ao
-            Claude para recriar a partir do XML que você exportou.
-          </p>
-        </details>
-        <details>
-          <summary>Erro 500 em tudo</summary>
-          <p>
-            O servidor está sem configuração (token ou banco). Avise quem administra o serviço: o
-            log da função informa o que falta.
-          </p>
-        </details>
-      </section>
-
-      <!-- ── Boas práticas e limites ───────────────────────────────────── -->
-      <section>
-        <h2>Boas práticas e limites</h2>
-        <ul class="plain">
-          <li>Peça sempre o <strong>XML ao final</strong>: é o seu arquivo de verdade.</li>
-          <li>
-            Diagramas ficam <strong>7 dias</strong> sem uso e no máximo
-            <strong>20 por token</strong>.
-          </li>
-          <li>
-            Quem usa o mesmo token vê os mesmos diagramas — cada pessoa ou equipe deve ter o seu.
-          </li>
-          <li>
-            Exporta XML, SVG e PNG. Animações (GIF, MP4) e HTML interativo ficam só na versão local.
-          </li>
-          <li>
-            Comece pelo caminho feliz e acrescente exceções depois — o resultado sai mais limpo.
-          </li>
-        </ul>
+      <!-- ══ Exemplo real ════════════════════════════════════════════════ -->
+      <section class="panel" id="exemplo">
+        <span class="pill">Exemplo real</span>
+        <h2>Do pedido <span class="soft">ao diagrama</span></h2>
+        <p class="muted">
+          Este diagrama foi gerado pelo MCP a partir de uma frase. Nenhuma caixa foi arrastada à
+          mão.
+        </p>
+        <div class="example">
+          <div class="hero-quote">
+            <span class="mini-label">O pedido</span>
+            “Modele o reembolso de despesas: o colaborador envia o comprovante, o gestor avalia e,
+            se aprovar, o financeiro paga. Use raias para cada área.”
+          </div>
+          <img
+            src="/assets/exemplo-raias.png"
+            width="1742"
+            height="940"
+            alt="O mesmo diagrama de reembolso de despesas com raias Colaborador, Gestor e Financeiro."
+          />
+        </div>
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="wrap">
+    <!-- ══ E agora? ══════════════════════════════════════════════════════ -->
+    <footer class="final">
+      <div class="final-inner">
+        <h2>E agora?</h2>
         <p>
-          Baseado no projeto de código aberto
-          <a href="https://github.com/datakurre/bpmn-js-mcp" rel="noopener">bpmn-js-mcp</a> (licença
-          MIT), com o motor <a href="https://bpmn.io" rel="noopener">bpmn-js</a>.
+          O seu Claude acabou de ganhar 20 ferramentas de modelagem de processos. Ele desenha,
+          revisa e exporta em minutos o que levaria horas de arrastar caixinhas.
+        </p>
+        <p>
+          A ferramenta, porém, é só metade do caminho. A outra metade é saber o que vale mapear:
+          onde o processo trava, o que compensa automatizar e como ele deveria funcionar.
+        </p>
+        <div class="actions">
+          <a class="btn btn-lime" href="https://github.com/GuilhermeVarallo/bpmn-js-mcp-main"
+            >Ver o projeto no GitHub</a
+          >
+          <a class="btn btn-outline" href="#instalacao">Voltar à instalação</a>
+        </div>
+        <p class="credits">
+          Servidor MCP:
+          <a href="https://github.com/GuilhermeVarallo/bpmn-js-mcp-main">bpmn-js-mcp</a> (MIT),
+          derivado de <a href="https://github.com/datakurre/bpmn-js-mcp">datakurre/bpmn-js-mcp</a> e
+          construído sobre o <a href="https://bpmn.io">bpmn-js</a>. Fontes Inter e Instrument Serif
+          (<a href="/assets/fonts/LICENSE-fontes.txt">OFL</a>).
         </p>
       </div>
     </footer>
