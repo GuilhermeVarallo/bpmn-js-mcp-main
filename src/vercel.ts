@@ -1,5 +1,5 @@
 /**
- * Vercel Function entry (bundled to dist/vercel.js, exposed by api/mcp.js).
+ * Vercel Function entry (bundled to dist/vercel/vercel.js, exposed by api/mcp.js).
  *
  * Configuration comes from the project's environment variables — see
  * .env.vercel.example.  A misconfiguration (no token, no Redis) answers 500

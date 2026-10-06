@@ -112,7 +112,7 @@ da Vercel). Antes de cada chamada recarrega o diagrama citado se outra
 instância o alterou; depois, grava de volta o que mudou — antes de responder.
 
 Arquivos: `vercel.json` (build, região `gru1`/São Paulo, rotas e cabeçalhos),
-`api/mcp.js` (a função; o código vem de `dist/vercel.js`), `public/` (só um
+`api/mcp.js` (a função; o código vem de `dist/vercel/vercel.js`, um bundle autocontido — ver `esbuild.config.mjs`), `public/` (só um
 `robots.txt`; impede a Vercel de servir o repositório como site estático) e
 `.vercelignore`. Variáveis comentadas em `.env.vercel.example`.
 
@@ -249,7 +249,7 @@ em `/mcp` sem token, em `413` e em `502`):
 ```
 src/
   index.ts             entrada: escolhe stdio, --http ou --http --stateless
-  vercel.ts            função da Vercel (vira dist/vercel.js)
+  vercel.ts            função da Vercel (vira dist/vercel/vercel.js)
   server.ts            monta o servidor MCP (uma instância por sessão no HTTP)
   http-server.ts       transporte HTTP com sessões (Docker): limites, /health
   stateless-http.ts    transporte HTTP sem sessão (Vercel): sincroniza com o Redis

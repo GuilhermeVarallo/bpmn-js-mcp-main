@@ -15,7 +15,7 @@ found".
 
 ## Decision
 
-- `--http --stateless` (and the Vercel Function `api/mcp.js` → `dist/vercel.js`)
+- `--http --stateless` (and the Vercel Function `api/mcp.js` → `dist/vercel/vercel.js`, a self-contained bundle: Vercel's loader cannot `require()` ES modules)
   serve MCP without sessions: a fresh `Server` and a JSON-response
   `StreamableHTTPServerTransport` (`sessionIdGenerator: undefined`) per POST.
 - Diagrams live in a `DiagramStore` (`src/diagram-store.ts`): Upstash Redis
