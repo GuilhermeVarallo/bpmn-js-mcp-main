@@ -92,7 +92,7 @@ git por engano; ele já está no `.gitignore`.
 
 ```bash
 docker build -t bpmn-js-mcp:1.0.0 .
-docker build -t bpmn-js-mcp-nginx:1.0.0 deploy/nginx
+docker build -t bpmn-js-mcp-nginx:1.0.0 -f deploy/nginx/Dockerfile .
 docker network create bpmn-mcp
 docker run -d --name app --network bpmn-mcp --read-only --tmpfs /tmp \
   -e MCP_AUTH_TOKENS="<token de 64 hex>" bpmn-js-mcp:1.0.0
@@ -112,8 +112,9 @@ da Vercel). Antes de cada chamada recarrega o diagrama citado se outra
 instância o alterou; depois, grava de volta o que mudou — antes de responder.
 
 Arquivos: `vercel.json` (build, região `gru1`/São Paulo, rotas e cabeçalhos),
-`api/mcp.js` (a função; o código vem de `dist/vercel/vercel.js`, um bundle autocontido — ver `esbuild.config.mjs`), `public/` (só um
-`robots.txt`; impede a Vercel de servir o repositório como site estático) e
+`api/mcp.js` (a função; o código vem de `dist/vercel/vercel.js`, um bundle autocontido — ver `esbuild.config.mjs`), `public/` (a página de apresentação em `/` — servida também pelo nginx no modo
+Docker — e o `robots.txt`; ter essa pasta como saída impede a Vercel de servir o
+repositório como site estático) e
 `.vercelignore`. Variáveis comentadas em `.env.vercel.example`.
 
 1. **Login e vínculo do projeto** (uma vez, na raiz do repositório):
@@ -157,6 +158,9 @@ do Upstash: `docker compose --env-file .env.docker --profile vercel-dev up -d --
 e use `http://127.0.0.1:8081/mcp`.
 
 ## Conectar um cliente
+
+A página na raiz do serviço (`https://<host-publicado>/`) traz o passo a passo,
+com o endereço já preenchido, prompts prontos e a lista de ferramentas.
 
 Claude Code:
 
@@ -262,7 +266,7 @@ test/                  vitest (inclui http-server.test.ts)
 deploy/nginx/          imagem e configuração do nginx de borda
 api/mcp.js             função da Vercel
 vercel.json            configuração da Vercel (rotas, cabeçalhos, região)
-public/                estático da Vercel (só robots.txt)
+public/                página de apresentação em / (HTML, CSS e JS sem inline, por causa da CSP)
 Dockerfile             imagem do app
 docker-compose.yml     app + nginx; perfil vercel-dev = modo Vercel local
 .env.docker.example    variáveis do compose, comentadas

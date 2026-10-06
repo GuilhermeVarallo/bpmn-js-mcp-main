@@ -56,7 +56,8 @@ services:
 
   nginx:
     build:
-      context: deploy/nginx
+      context: .
+      dockerfile: deploy/nginx/Dockerfile
     image: bpmn-js-mcp-nginx:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:

@@ -1,0 +1,479 @@
+/* Página de apresentação do BPMN MCP. Sem fontes externas (CSP default-src 'self'). */
+
+:root {
+  --ink: #1a1a1a;
+  --text: #333;
+  --muted: #6b6b6b;
+  --line: #e6e3de;
+  --paper: #fff;
+  --cream: #faf8f5;
+  --accent: #c2603f;
+  --accent-soft: #fbeee8;
+  --ok: #2f7d4f;
+  --ok-soft: #e7f4ec;
+  --warn: #9a6a00;
+  --warn-soft: #fff4d6;
+  --code-bg: #f4f2ee;
+  --radius: 10px;
+  --sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* ── Topo ─────────────────────────────────────────────────────────────── */
+
+.topbar {
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.status {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--code-bg);
+  color: var(--muted);
+}
+
+.status[data-state='ok'] {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.status[data-state='down'] {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+
+.hero {
+  padding: 56px 0 24px;
+}
+
+.eyebrow,
+.step {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.step {
+  color: var(--accent);
+}
+
+h1 {
+  font-size: clamp(32px, 6vw, 44px);
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 0 0 18px;
+  letter-spacing: -0.01em;
+}
+
+h1 em {
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.lead {
+  font-size: 19px;
+  color: var(--muted);
+  margin: 0 0 28px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  border: 1px solid var(--ink);
+}
+
+.btn-dark {
+  background: var(--ink);
+  color: #fff;
+}
+
+.btn-dark:hover {
+  background: #333;
+}
+
+.btn-light {
+  background: #fff;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-light:hover {
+  border-color: var(--ink);
+}
+
+.hero-figure {
+  margin: 40px 0 0;
+  padding: 24px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.hero-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-figure figcaption {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Seções ───────────────────────────────────────────────────────────── */
+
+section {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--line);
+  /* Âncoras (#conectar…) não ficam atrás da barra fixa do topo. */
+  scroll-margin-top: 56px;
+}
+
+section:last-of-type {
+  border-bottom: 0;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+h3 {
+  font-size: 19px;
+  color: var(--ink);
+  margin: 28px 0 8px;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.checks,
+.plain {
+  padding-left: 0;
+  list-style: none;
+}
+
+.checks li,
+.plain li {
+  position: relative;
+  padding-left: 30px;
+  margin: 8px 0;
+}
+
+.checks li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.plain li::before {
+  content: '•';
+  position: absolute;
+  left: 8px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  background: var(--cream);
+}
+
+.card h3 {
+  margin: 8px 0 4px;
+  font-size: 17px;
+}
+
+.card p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.card-num {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+}
+
+.hint {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+/* ── Blocos de código e prompts ───────────────────────────────────────── */
+
+.codebox {
+  position: relative;
+  margin: 10px 0 6px;
+}
+
+.codebox pre {
+  margin: 0;
+  padding: 16px 92px 16px 16px;
+  background: #1e1e1e;
+  color: #f2f2f2;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.codebox pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.codebox.prompt pre {
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px dashed #d8d2c8;
+  font-family: var(--sans);
+  font-size: 15px;
+}
+
+.codebox.prompt pre code {
+  font-family: var(--sans);
+}
+
+.copy {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 6px 12px;
+  font: 600 13px var(--sans);
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #2d2d2d;
+  color: #fff;
+  cursor: pointer;
+}
+
+.codebox.prompt .copy {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.copy:hover {
+  filter: brightness(1.2);
+}
+
+.copy[data-done] {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.usecase h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tag {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+}
+
+/* ── Expansíveis ──────────────────────────────────────────────────────── */
+
+details {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 10px 0;
+  background: #fff;
+}
+
+details[open] {
+  background: var(--cream);
+}
+
+summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::after {
+  content: '+';
+  font-size: 20px;
+  color: var(--muted);
+}
+
+details[open] summary::after {
+  content: '−';
+}
+
+details > p,
+details > dl {
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
+.count {
+  margin-left: auto;
+  margin-right: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--code-bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.tools dt {
+  margin-top: 10px;
+}
+
+.tools dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ── Rodapé ───────────────────────────────────────────────────────────── */
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 24px 0 40px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  body {
+    font-size: 16px;
+  }
+
+  .codebox pre {
+    padding-right: 16px;
+    padding-top: 48px;
+  }
+}
+
+/* Área temporária do "Copiar" de reserva (site.js): fora da tela. */
+.offscreen {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  opacity: 0;
+}
